@@ -70,7 +70,10 @@ class Record:
 
     def add_phone(self, phone):
         my_phone = Phone(phone)
-        self.phones.append(my_phone)
+        if len(self.phones) ==0:
+            self.phones.append(my_phone)
+        else:
+            self.phones[0] = my_phone;
 
     def remove_phone(self, phone):
         f = Phone(phone)
@@ -193,10 +196,11 @@ def add_contact(args, book: AddressBook) -> str:
     if record == None:
         record = Record(name)
         book.add_record(record)
-        record.add_phone(phone)
+
         message = "record added"
     else:
-        message = "Phone exist, use CHANGE to change phone number"
+        message = "phone updated"
+    record.add_phone(phone)
     return message
 
 @input_error
