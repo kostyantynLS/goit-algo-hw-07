@@ -195,12 +195,11 @@ def add_contact(args, book: AddressBook) -> str:
     record = book.find(name)
     if record == None:
         record = Record(name)
-        book.add_record(record)
-
-        message = "record added"
+        message = "contact added"
     else:
-        message = "phone updated"
+        message = "contact's phone updated"
     record.add_phone(phone)
+    book.add_record(record)
     return message
 
 @input_error
@@ -212,7 +211,7 @@ def change_contact(args, book: AddressBook) -> str:
     else:
         old_phone = record.phones[0].value
         record.edit_phone(old_phone, phone)
-        message = "phone updated"
+        message = "contact's phone updated"
     return message      
 
 @input_error
