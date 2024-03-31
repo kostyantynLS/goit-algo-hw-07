@@ -240,9 +240,9 @@ def print_contact(book: AddressBook):
 def get_contact(args, book: AddressBook):
     name = args[0]
     record = book.find(name)
-    if record is None:
+    if record == None:
         return "contact not found"
-    return record.phones()
+    return record.phones[0].value
 
 
 @input_error
