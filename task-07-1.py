@@ -68,12 +68,15 @@ class Record:
     def __str__(self):
         return (f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, birthday: {self.birthday.value if self.birthday else None}")
 
-    def add_phone(self, phone):
+    def add_phone(self, phone) -> bool:
         my_phone = Phone(phone)
-        if len(self.phones) ==0:
+        found = False
+        for phone_stored in self.phones:
+            if phone_stored.value == phone:
+                found = True
+        if not found:
             self.phones.append(my_phone)
-        else:
-            self.phones[0] = my_phone;
+        return not found
 
     def remove_phone(self, phone):
         f = Phone(phone)
@@ -198,20 +201,28 @@ def add_contact(args, book: AddressBook) -> str:
         message = "contact added"
     else:
         message = "contact's phone updated"
-    record.add_phone(phone)
+    if not record.add_phone(phone):
+        message = "contact's phone already exist"
     book.add_record(record)
     return message
 
 @input_error
 def change_contact(args, book: AddressBook) -> str:
-    name, phone = args
+    name, phone_old, phone_new = args
     record = book.find(name)   
     if record is None:
         message = "contact not found"
     else:
-        old_phone = record.phones[0].value
-        record.edit_phone(old_phone, phone)
-        message = "contact's phone updated"
+        found_id = 0
+        message = "contact's phone not found and not updated"
+        while found_id<len(record.phones):
+            if record.phones[found_id].value == phone_old:
+                record.phones[found_id] = Phone(phone_new)
+                message = "contact's phone updated"
+                break
+            else:
+                found_id +=1
+#        record.edit_phone(old_phone, phone)
     return message      
 
 @input_error
@@ -229,7 +240,8 @@ def del_contact(args, book: AddressBook) -> str:
 def print_contact(book: AddressBook):
     items = list()
     for name, record in book.data.items():
-        s = f'{name.value} : {record.phones[0].value} '
+        s = f'{name.value} : '
+        s+= f'phones: {'; '.join(p.value for p in record.phones)}'
         if record.birthday != None:
             s+= ', birthday: '+record.birthday.value
         items.append(s)
@@ -241,7 +253,10 @@ def get_contact(args, book: AddressBook):
     record = book.find(name)
     if record == None:
         return "contact not found"
-    return record.phones[0].value
+    plist = []
+    for i in range(0, len(record.phones)):
+        plist.append(record.phones[i].value)
+    return plist
 
 
 @input_error
@@ -298,7 +313,7 @@ def main():
                     'add name phone\t\t- add phone to contact list\n'\
                     'add-birthday name date\t- add or update birthday (date in format DD.MM.YYYY)\n'\
                     'del name\t\t- delete contact from list\n'\
-                    'change name phone\t- update phone number for name\n'\
+                    'change name phone1 phone2\t- update phone number for name\n'\
                     'show-birthday name\t- show Birthday for name\n'\
                     'birthdays\t\t- display all upcoming birthdays in a next 7 days\n'\
                     'phone name\t\t- get phone number for name\n'\
@@ -319,7 +334,13 @@ def main():
         elif cmds[0]=='change':
             print(change_contact(cmds[1:], book))
         elif cmds[0]=='phone':
-            print(get_contact(cmds[1:], book))
+            us_list = get_contact(cmds[1:], book)
+            if len(us_list) == 0:
+                print(Fore.MAGENTA, 'no phones', Style.RESET_ALL)
+            else:
+                print('phone list:')
+                for line_cont in us_list:
+                    print(line_cont)
         elif cmds[0]=='all':
             us_list = print_contact(book)
             if len(us_list) == 0:
